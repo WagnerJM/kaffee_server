@@ -1,3 +1,4 @@
+import json
 import pika
 import logging
 from flask import request
@@ -54,26 +55,40 @@ class RechnungsApi(Resource):
         channel.queue_declare(queue="email")
             
         for each in data:
-            logging.warning("test")
-        
-            
-            """
-            obj = {}
-            logging.warning(f"Coffee count from each {each}")
+            settings = SystemSetting.get_settings()
+            logging.warning(f"Using: {each}")
+            logging.warning(f"username: {each['username']}, coffee_count: {each['coffee_count']}")
+            obj = {
+                "username": "",
+                "email": "",
+                "coffee_count": "",
+                "betrag": ""
+            }
+            logging.warning("Rechne new_coffee_count aus")
             new_coffee_count = RechnungsApi.count(each['coffee_count'])
-            temp_var = user_coffee_count - new_coffee_count
-            user["coffee_count"] = temp_var
+            if new_coffee_count is None:
+                new_coffee_count = int(0)
+            logging.warning(f"New coffee count: {new_coffee_count}")
+            logging.warning("Getting user")
+            user = User.find_by_username(each['username'])
+            logging.warning(f"Found user: {user.username}")
+            logging.warning(f"User coffee count: {user.coffee_count}")
+            temp_var = user.coffee_count - new_coffee_count
+            logging.warning(f"Temporary coffee_count: {temp_var}")
+            user.coffee_count = temp_var
             user.save()
-            obj["username"] = each["username"]
-            obj["email"] = each["email"]
+            obj["username"] = user.username
+            obj["email"] = user.email
             obj["coffee_count"] = new_coffee_count
-            obj["betrag"] = new_coffee_count * settings["coffee_price"]
+            obj["betrag"] = new_coffee_count * settings.kaffee_preis
+            logging.warning(f"obj: {obj}")
+            user = User.find_by_username(each['username'])
+            logging.warning(f"Neuer User coffee counter: {user.coffee_count}")
             channel.basic_publish(
                 exchange="",
                 routing_key="email",
-                body=obj
+                body=json.dumps(obj)
             )
-            """
         connection.close()
         return {
             "message": "Die Daten wurden gespeichert und Emails werden versendet."
