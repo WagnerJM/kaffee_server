@@ -1,10 +1,14 @@
+import pika
+import logging
 from flask import request
 from flask_restful import Resource
 
 from app.security import admin_required
 from app.database import db
 from app.api.system.models import SystemSetting, SystemSettingSchema
+from app.api.user.models import User
 
+logging.basicConfig(level=logging.WARNING)
 class SystemSettingApi(Resource):
     
     @admin_required
@@ -34,3 +38,62 @@ class SystemSettingUpdateApi(Resource):
         response["system_settings"] = schema.dump(settings).data
         return response, 200
 
+
+class RechnungsApi(Resource):
+
+    @admin_required
+    def put(self):
+        # /admin/rechnungslauf
+        data = request.get_json()
+        settings = SystemSetting.get_settings()
+
+        connection = pika.BlockingConnection(
+            pika.ConnectionParameters(host="localhost")
+        )
+        channel = connection.channel()
+        channel.queue_declare(queue="email")
+            
+        for each in data:
+            logging.warning("test")
+        
+            
+            """
+            obj = {}
+            logging.warning(f"Coffee count from each {each}")
+            new_coffee_count = RechnungsApi.count(each['coffee_count'])
+            temp_var = user_coffee_count - new_coffee_count
+            user["coffee_count"] = temp_var
+            user.save()
+            obj["username"] = each["username"]
+            obj["email"] = each["email"]
+            obj["coffee_count"] = new_coffee_count
+            obj["betrag"] = new_coffee_count * settings["coffee_price"]
+            channel.basic_publish(
+                exchange="",
+                routing_key="email",
+                body=obj
+            )
+            """
+        connection.close()
+        return {
+            "message": "Die Daten wurden gespeichert und Emails werden versendet."
+        }, 201
+
+            
+
+        #for each in data
+            #create new user_obj
+            #schleife um coffee_count % 5 == 0 herauszufinden, wenn nicht dann coffee_count -= 1
+            #get user > coffee_count - coffees > speichern den neuen Wert
+            #multiply coffee_count * coffee_price > save to user_obj
+            #save user_email, username to user_obj
+            #create object in queue for email
+
+    @staticmethod
+    def count(nummer):
+        rest = int(nummer) % 5
+        if rest == 0:
+            return nummer
+        else:
+            nummer = int(nummer) - 1
+            RechnungsApi.count(nummer)

@@ -89,12 +89,10 @@ def create_app():
 	api.add_resource(AdminUsersApi, "/api/v1/admin/user")
 	api.add_resource(UserCoffeeApi, "/api/v1/user/coffee")
 	
-	from app.api.system.resources import SystemSettingUpdateApi, SystemSettingApi
+	from app.api.system.resources import SystemSettingUpdateApi, SystemSettingApi, RechnungsApi
 	api.add_resource(SystemSettingApi, "/api/v1/admin/settings")
 	api.add_resource(SystemSettingUpdateApi, "/api/v1/admin/setting")
-	#api.add_resource(SystemPing, "/ping")
-
-
+	api.add_resource(RechnungsApi, "/api/v1/admin/rechnungslauf")
 
 	"""from app.api.kassenbuch.resources import KassenbuchListApi, KassenbuchApi
 	api.add_resource(KassenbuchListApi, "/api/v1/kassenbuch")
